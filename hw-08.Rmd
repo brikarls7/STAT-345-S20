@@ -1,0 +1,228 @@
+---
+title: "STAT 345 Homework 8"
+author: "Bri Karls"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+$ brew install git
+```
+
+## What is normal?
+
+Normal quantile-quantile (QQ) plots are widely used to assess normality of residuals in a variety of statistical tests (t-tests, linear regression, etc.). In an ideal world, all of the data (e.g., residuals) fall along the diagonal line when the distribution is normal. However, sample data rarely has this property -- the points plotted vary from the line. How much deviation is reasonable? The following exercises are intended to give you a qualitative sense of what is "normal".
+
+## Starting from normal
+
+1. For sample sizes of $n$ = 10, 20, 30, 40, 50, and 100, complete the following:
+  
+  - Generate $n$ draws from a standard normal distribution. Repeat this data generation 100 times, storing the results in an object (or multiple objects).
+  - Generate a vector of length $n$ of quantiles of the normal distribution
+  - Plot the simulated normal data against the normal quantiles. Set the x-axis and y-axis limits to range between -3 and 3. Overlay each of the 100 sets of data on the same plot, using a reasonable level of transparency for the points plotted. Add a reference line that indicates normality using a different color than you used for the points. (Note: you probably don't want to use qqnorm()` for this -- a ggplot scatterplot is going to be simpler overall.)
+  
+  
+```{r}
+
+dataGen <- function(n)
+{
+  dist<- rnorm(n,0,1)
+  allDraws <- replicate(100, dist)
+  allDraws <- sort(allDraws)
+
+  allDraws<- as.vector(allDraws)
+  return(allDraws)
+
+}
+
+nDraws1 <- dataGen(10)
+nDraws2 <- dataGen(20)
+nDraws3 <- dataGen(30)
+nDraws4 <- dataGen(40)
+nDraws5 <- dataGen(50)
+nDraws6 <- dataGen(100)
+
+dataQs <- function(n)
+{
+  x <- dataGen(n)
+  quantiles <- quantile(x, seq(0,1,by= 1/n))
+  quantiles<- as.vector(quantiles)
+  return(quantiles)
+}
+
+nQuans1 <- dataQs(10)
+nQuans2 <- dataQs(20)
+nQuans3 <- dataQs(30)
+nQuans4 <- dataQs(40)
+nQuans5 <- dataQs(50)
+nQuans6 <- dataQs(100)
+
+  
+
+## I could not use a ggplot because I stored my data as numeric vectors so I could better analyze it. This means I had to use scatter.smooth plots. I was able to do these and create the regression line, the plots are just not on the same graph unfortunately.
+
+scatter.smooth(x = nDraws1,col="green",main = "Number 1", ylim = range(-3,3)) 
+scatter.smooth(x = nQuans1, col = "red", ylim = range(-3,3))
+
+
+scatter.smooth(x = nDraws2,col="green", main = "Number 2", ylim = range(-3,3))
+scatter.smooth(x = nQuans2, col = "red", ylim = range(-3,3))
+
+
+scatter.smooth(x = nDraws3,col="green", main = "Number 3", ylim = range(-3,3))
+scatter.smooth(x = nQuans3, col = "red", ylim = range(-3,3))
+
+
+scatter.smooth(x = nDraws4,col="green", main = "Number 4", ylim = range(-3,3))
+scatter.smooth(x = nQuans4, col = "red", ylim = range(-3,3))
+
+
+scatter.smooth(x = nDraws5,col="green", main = "Number 5", ylim = range(-3,3))
+scatter.smooth(x = nQuans5,  col = "red", ylim = range(-3,3))
+
+
+scatter.smooth(x = nDraws6,col="green", main = "Number 6", ylim = range(-3,3))
+scatter.smooth(x = nQuans6, col = "red", ylim = range(-3,3))
+
+
+```
+  
+2. Comment on the six plots you created above. What insights can be found in this series of plots?
+
+The six plots have made it very clear that the more samples that are taken, the closer to a normal distribution that we have. As seen in the last plot, the regression lines are very similar to each other, indicating that the datas are very similar in normalacy. The plots of 1 and 2 show a more distinct line difference between the two. This shows us that the more samples we take, the more normal our data will become. 
+
+## Starting from non-normal
+
+3. The following code will generate 1000 draws from a random exponential distribution with `rate=.25`. The `set.seed` argument ensures that you use the same data as Dr. Baumann. Create a histogram of these data. Verify that the mean and standard deviation of these data are (approximately) correct based on what you know of the exponential distribution (STAT 245 material) -- justify your conclusion.
+
+```{r}
+set.seed(123456)
+dd <- rexp(1000, rate=.25)  
+
+hist(dd)
+mean(dd)
+sd(dd) 
+
+## They forsure make sense. The mean of about 4 is very close to the left which makes sense when you have a Right-Skewed graph. The sd also makes sense because we have the range being about 25, so the sd should be around 4-5 or so which this sd is just a little above 4 so it is very fitting. The exponential is no doubt a skewed graph, so these numbers are very fitting for the graph of an exponential function.
+```
+
+4. For sample sizes of $n$ = 10, 20, 30, 40, 50, and 100, complete the following:
+  - Create 100 samples of size $n$ from the object `dd` above. Sample without replacement. For each sample, calculate the average.
+  - For the 100 averages calculated, conduct a Shapiro-Wilk normality test (see `?shapiro.test` for more information -- this is a more powerful test than KS). Store the resulting p-value.
+  - Repeat this process (sampling and testing) 100 times.
+  - Calculate the average p-value, median p-value, and the proportion of p-values that are significant at $alpha=0.05$. 
+  
+Complete the steps above efficiently (`for()` loops are fine here, if you so choose; don't copy-paste code!). Store the average p-value and proportion of significant p-values for each sample size in an appropriate object (or three objects).
+
+```{r}
+library(tidyverse)
+allData <- function (n)
+{
+sampData <- function(n)
+{
+  dd <- rexp(n, rate = .25)
+}
+sampData1 <- sampData(10) 
+sampData2 <- sampData(20)
+sampData3 <- sampData(30)
+sampData4 <- sampData(40)
+sampData5 <- sampData(50)
+sampData6 <- sampData(100)
+
+
+sampleData <- function (n)
+{
+st1<- shapiro.test(sampData1)
+st1<- st1$p.value
+
+st2<- shapiro.test(sampData2)
+st2<- st2$p.value
+
+
+st3<- shapiro.test(sampData3)
+st3<- st3$p.value
+
+st4<- shapiro.test(sampData4)
+st4<- st4$p.value
+
+st5<- shapiro.test(sampData5)
+st5<- st5$p.value
+
+st6<- shapiro.test(sampData6)
+st6<- st6$p.value
+
+data <- data.frame(st1,st2,st3,st4,st5,st6)
+
+return(data)
+}
+fullData <- sapply(n, sampleData)
+}
+allData2 <- sapply(1:100, allData)
+allData3<- as.matrix(allData2)
+allData3 <- t(allData3)
+
+st1<- allData3[1:100] %>% as.numeric()
+st2 <- allData3[101:200] %>% as.numeric()
+st3<- allData3[201:300] %>% as.numeric()
+st4 <- allData3[301:400]  %>% as.numeric()
+st5 <- allData3[401:500]  %>% as.numeric()
+st6<- allData3[501:600]  %>% as.numeric()
+
+
+
+st11 <- c(mean(st1),
+median(st1),
+t.test(st1,conf.int = 0.95)$p.value)
+
+
+st22 <- c(mean(st2),
+median(st2),
+t.test(st2,conf.int = 0.95)$p.value)
+
+
+st33 <- c(mean(st3),
+median(st3),
+t.test(st3,conf.int = 0.95)$p.value)
+
+
+st44 <- c(mean(st4),
+median(st4),
+t.test(st4,conf.int = 0.95)$p.value)
+
+
+st55 <- c(mean(st5),
+median(st5),
+t.test(st5,conf.int = 0.95)$p.value)
+
+
+st66 <- c(mean(st6),
+median(st6),
+t.test(st6,conf.int = 0.95)$p.value)
+
+
+DF <- data.frame(st11,
+st22,
+st33,
+st44,
+st55,
+st66)
+
+
+
+
+```
+
+
+5. Comment on your results from part 4 above. In particular:
+  - Do your results agree with what you know about the Central Limit Theorem and the probability of a Type I error in a statistical hypothesis test? Why or why not?
+  
+    Yes these make sense with the CLT and Type I error. This is because we have samples of 100 which are greater than 30 so we should have a normal distribution which results in smaller p-values. We see that these significant p-values have a very small proportion (the last column). These show us that the mean and median are relatively close, which we could also expect.  
+
+
+
+  - What can you infer about the usefulness of "blindly" applying a Shapiro-Wilks normality test on sample data? 
+  
+    We can infer that this Shapiro-Wilks test gives us a p-value that is fairly accurate to the sample size. When I ran the test with only 10 elements, the p-value was bigger which was expected. The Shapiro Test did seem to give results of a normal distribution. I think the p-values may be a little small for my liking, but I think they are generally good. The Test seems to make the sample data into a more wideset database and make it more towards a population representation over a sample representation. 
